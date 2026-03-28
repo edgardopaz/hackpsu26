@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 
 RiskLevel = Literal["low", "medium", "high"]
+SourceType = Literal["screenshot", "link"]
 
 
 class FramingSignal(BaseModel):
@@ -32,7 +33,9 @@ class NeutralSummary(BaseModel):
 
 
 class AnalysisResponse(BaseModel):
-    filename: str
+    source_type: SourceType
+    source_url: str | None = None
+    filename: str | None = None
     extracted_text: str
     framing: FramingAnalysis
     coverage: list[CoverageItem]

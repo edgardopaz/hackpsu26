@@ -7,6 +7,7 @@ import './App.css'
 
 function App() {
   const [file, setFile] = useState(null)
+  const [link, setLink] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -24,8 +25,24 @@ function App() {
     return () => window.clearInterval(timer)
   }, [busy])
 
+  function handleModeChange(newMode) {
+    // Clear the opposite mode's state when switching
+    if (newMode === 'screenshot') {
+      setLink('')
+    } else {
+      setFile(null)
+    }
+  }
+
   async function handleAnalyze() {
-    if (!file) {
+    // Validation
+    if (!file && !link) {
+      setError('Please provide either a screenshot or a social media link.')
+      return
+    }
+
+    if (file && link) {
+      setError('Please provide either a screenshot or a link, not both.')
       return
     }
 
@@ -35,11 +52,11 @@ function App() {
     setActiveStep(0)
 
     try {
-      const response = await analyzePost(file)
+      const response = await analyzePost(file, link)
       setResult(response)
       setActiveStep(4)
     } catch (requestError) {
-      setError(requestError.message)
+      setError(requestError.message || 'An error occurred during analysis.')
     } finally {
       setBusy(false)
     }
@@ -61,8 +78,11 @@ function App() {
       <section className="dashboard-grid">
         <UploadZone
           file={file}
+          link={link}
           busy={busy}
           onFileChange={setFile}
+          onLinkChange={setLink}
+          onModeChange={handleModeChange}
           onSubmit={handleAnalyze}
         />
         <ProgressSteps activeStep={activeStep} busy={busy} />
