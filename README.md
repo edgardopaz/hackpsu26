@@ -55,4 +55,3 @@ npm run dev
 ```
 
 Vite proxies `/api` requests to `http://localhost:8000`.
-
