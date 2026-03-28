@@ -10,6 +10,19 @@ from schemas.analysis import CoverageItem
 
 DEFAULT_MAX_RESULTS = 3
 MAX_QUERY_LENGTH = 400
+MAX_ANGLE_LENGTH = 320
+MAX_ANGLE_SENTENCES = 2
+PROMO_PATTERNS = [
+    re.compile(r"\bshop now\b", re.IGNORECASE),
+    re.compile(r"\bamazon .* sale\b", re.IGNORECASE),
+    re.compile(r"\bsign up\b", re.IGNORECASE),
+    re.compile(r"\bsubscribe\b", re.IGNORECASE),
+    re.compile(r"\bnewsletter\b", re.IGNORECASE),
+    re.compile(r"\bread in app\b", re.IGNORECASE),
+    re.compile(r"\bbecome an insider\b", re.IGNORECASE),
+    re.compile(r"\bhave an account\b", re.IGNORECASE),
+    re.compile(r"\bsave saved\b", re.IGNORECASE),
+]
 
 
 class SearchError(RuntimeError):
@@ -83,7 +96,7 @@ def _is_usable_result(result: dict[str, Any]) -> bool:
 
 
 def _build_angle(result: dict[str, Any]) -> str:
-    content = (result.get("content") or "").strip()
+    content = _sanitize_content(result.get("content") or "")
     published_date = result.get("published_date")
 
     if content:
@@ -95,6 +108,55 @@ def _build_angle(result: dict[str, Any]) -> str:
         return f"Coverage result published on {published_date}."
 
     return "Coverage retrieved, but no descriptive snippet was returned."
+
+
+def _sanitize_content(content: str) -> str:
+    if not content.strip():
+        return ""
+
+    cleaned_lines = []
+    for raw_line in content.splitlines():
+        line = raw_line.strip(" #-*\t")
+        if not line:
+            continue
+        if any(pattern.search(line) for pattern in PROMO_PATTERNS):
+            continue
+        cleaned_lines.append(line)
+
+    cleaned_text = " ".join(cleaned_lines)
+    cleaned_text = re.sub(r"\s+", " ", cleaned_text).strip()
+    if not cleaned_text:
+        return ""
+
+    sentences = re.split(r"(?<=[.!?])\s+", cleaned_text)
+    kept_sentences: list[str] = []
+    current_length = 0
+
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        if any(pattern.search(sentence) for pattern in PROMO_PATTERNS):
+            continue
+
+        projected_length = current_length + len(sentence) + (1 if kept_sentences else 0)
+        if kept_sentences and (
+            len(kept_sentences) >= MAX_ANGLE_SENTENCES or projected_length > MAX_ANGLE_LENGTH
+        ):
+            break
+
+        if not kept_sentences and len(sentence) > MAX_ANGLE_LENGTH:
+            return sentence[: MAX_ANGLE_LENGTH - 1].rstrip() + "…"
+
+        kept_sentences.append(sentence)
+        current_length = projected_length
+
+    if kept_sentences:
+        return " ".join(kept_sentences)
+
+    if len(cleaned_text) > MAX_ANGLE_LENGTH:
+        return cleaned_text[: MAX_ANGLE_LENGTH - 1].rstrip() + "…"
+    return cleaned_text
 
 
 def _extract_outlet_name(url: str | None) -> str:
