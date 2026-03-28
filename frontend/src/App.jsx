@@ -85,7 +85,7 @@ function App() {
           onModeChange={handleModeChange}
           onSubmit={handleAnalyze}
         />
-        <ProgressSteps activeStep={activeStep} busy={busy} />
+        <ProgressSteps activeStep={activeStep} busy={busy} completed={!!result} />
         <ResultsCard result={result} />
       </section>
     </main>

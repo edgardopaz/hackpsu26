@@ -69,6 +69,10 @@ Rules:
 - Scores must be integers from 1 to 5.
 - If the text is mostly neutral, include one low-score signal explaining that.
 - Judge only the framing visible in the provided text.
+- Prefer the most consequential framing signals instead of generic observations.
+- Distinguish between straightforward breaking-news wording and genuinely manipulative phrasing.
+- Be especially careful with time-sensitive claims such as "live", "breaking", "updated", or casualty counts. These can be neutral reporting cues unless the wording overstates certainty or emotion.
+- Use concise explanations that a user can act on quickly.
 
 Text to analyze:
 {text}

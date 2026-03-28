@@ -45,6 +45,7 @@ def test_analyze_upload_returns_composed_response(monkeypatch) -> None:
                 title="Test coverage",
                 angle="A neutral test snippet.",
                 url="https://example.com/story",
+                published_date="2026-03-28",
             )
         ],
     )
@@ -61,8 +62,10 @@ def test_analyze_upload_returns_composed_response(monkeypatch) -> None:
     )
 
     upload = FakeUploadFile(filename="post.png", content=b"fake-image-bytes")
-    payload = asyncio.run(analyze_upload(upload))
+    payload = asyncio.run(analyze_upload(upload, ""))
 
+    assert payload.source_type == "screenshot"
+    assert payload.source_url is None
     assert payload.filename == "post.png"
     assert payload.extracted_text == "Breaking: Test OCR text"
     assert payload.framing.overall_risk == "medium"
