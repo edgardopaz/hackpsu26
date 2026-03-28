@@ -2,6 +2,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
 from schemas.analysis import AnalysisResponse
 from services.analyzer import analyze_framing
+from services.link_extractor import extract_text_from_link
 from services.ocr import extract_text
 from services.search import fetch_related_coverage
 from services.summarizer import build_summary
