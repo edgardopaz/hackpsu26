@@ -1,0 +1,85 @@
+:root {
+  --text: #344054;
+  --text-strong: #182230;
+  --bg: #f7f3ea;
+  --panel: rgba(255, 252, 246, 0.92);
+  --surface: rgba(255, 255, 255, 0.75);
+  --border: rgba(61, 64, 91, 0.14);
+  --accent: #9c6644;
+  --accent-border: rgba(156, 102, 68, 0.35);
+  --accent-soft: rgba(221, 184, 146, 0.18);
+  --button: #3d405b;
+  --button-text: #fff8f0;
+  --muted: #667085;
+  --step-badge: rgba(61, 64, 91, 0.1);
+  --shadow:
+    rgba(61, 64, 91, 0.08) 0 24px 44px -28px,
+    rgba(61, 64, 91, 0.05) 0 12px 20px -16px;
+
+  --sans: 'Instrument Sans', 'Segoe UI', sans-serif;
+  --heading: 'Fraunces', Georgia, serif;
+  --mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top left, rgba(244, 162, 97, 0.12), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(129, 178, 154, 0.15), transparent 26%),
+    var(--bg);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--heading);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4.7rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  margin: 0 0 16px;
+  @media (max-width: 1024px) {
+    font-size: 3rem;
+  }
+}
+
+h2 {
+  font-size: 1.7rem;
+  line-height: 1.1;
+  margin: 0 0 10px;
+}
+
+h3 {
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
