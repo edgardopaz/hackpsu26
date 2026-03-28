@@ -3,15 +3,15 @@ const STEPS = [
   'Extract text',
   'Analyze framing',
   'Check broader reporting',
-  'Return neutral summary',
+  'Summary',
 ]
 
 function ProgressSteps({ activeStep, busy, completed }) {
   return (
     <section className="panel progress-panel">
       <div>
-        <p className="eyebrow">Pipeline</p>
-        <h2>What the app is doing</h2>
+        <p className="eyebrow">Progress</p>
+        <h2>Progression Steps</h2>
       </div>
 
       <ol className="step-list">

@@ -66,7 +66,7 @@ function App() {
     <main className="app-shell">
       <section className="hero-panel">
         <p className="eyebrow">Fact Checker</p>
-        <h1>Verify screenshot-driven claims before the framing does the work for you.</h1>
+        <h2>Verify if a social media post is truthful, based on actual data.</h2>
         <p className="hero-copy">
           Upload a post, detect manipulative framing, compare it against broader reporting,
           and return a more neutral explanation of what is actually being said.
