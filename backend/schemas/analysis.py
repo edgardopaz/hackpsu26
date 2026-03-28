@@ -38,6 +38,7 @@ class AnalysisResponse(BaseModel):
     source_url: str | None = None
     filename: str | None = None
     extracted_text: str
+    article_summary: str
     framing: FramingAnalysis
     coverage: list[CoverageItem]
     neutral_summary: NeutralSummary
@@ -45,5 +46,6 @@ class AnalysisResponse(BaseModel):
 
 
 class SummaryResult(BaseModel):
+    article_summary: str
     neutral_summary: NeutralSummary
     verdict: str

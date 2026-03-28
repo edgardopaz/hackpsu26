@@ -14,6 +14,10 @@ DEFAULT_SUMMARY_MODEL = "gemini-2.5-flash"
 SUMMARY_RESPONSE_SCHEMA = {
     "type": "object",
     "properties": {
+        "article_summary": {
+            "type": "string",
+            "description": "A short plain-language summary of what the post or article is about.",
+        },
         "what_is_known": {
             "type": "string",
             "description": "A grounded summary of claims supported by the provided materials.",
@@ -31,7 +35,7 @@ SUMMARY_RESPONSE_SCHEMA = {
             "description": "A concise verdict grounded in the supplied evidence.",
         },
     },
-    "required": ["what_is_known", "what_is_unclear", "user_takeaway", "verdict"],
+    "required": ["article_summary", "what_is_known", "what_is_unclear", "user_takeaway", "verdict"],
     "additionalProperties": False,
 }
 SUMMARY_PROMPT_TEMPLATE = """
@@ -44,6 +48,7 @@ Your job:
 - If the evidence is mixed or incomplete, say so plainly.
 - Cite uncertainty when casualty counts, timing, or event scope differ across reports.
 - Keep the tone neutral and concise.
+- `article_summary` should explain in 1 to 2 sentences what the article or post is about.
 - Return valid JSON only.
 
 OCR text:
@@ -71,6 +76,7 @@ def build_summary(
 ) -> SummaryResult:
     if not extracted_text.strip():
         return SummaryResult(
+            article_summary="No readable article summary was available because no usable text was extracted.",
             neutral_summary=NeutralSummary(
                 what_is_known="No usable text was extracted from the upload.",
                 what_is_unclear="Without extracted text, the claim cannot be compared against broader coverage.",
@@ -112,6 +118,7 @@ def build_summary(
     payload = _parse_summary_payload(response_text)
 
     return SummaryResult(
+        article_summary=payload["article_summary"],
         neutral_summary=NeutralSummary(
             what_is_known=payload["what_is_known"],
             what_is_unclear=payload["what_is_unclear"],
@@ -210,7 +217,7 @@ def _parse_summary_payload(response_text: str) -> dict[str, str]:
     except json.JSONDecodeError as exc:
         raise SummaryError(f"Summary model returned non-JSON output: {response_text}") from exc
 
-    required_fields = ["what_is_known", "what_is_unclear", "user_takeaway", "verdict"]
+    required_fields = ["article_summary", "what_is_known", "what_is_unclear", "user_takeaway", "verdict"]
     for field in required_fields:
         value = payload.get(field)
         if not isinstance(value, str) or not value.strip():
