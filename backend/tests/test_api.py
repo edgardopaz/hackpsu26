@@ -52,6 +52,7 @@ def test_analyze_upload_returns_composed_response(monkeypatch) -> None:
     monkeypatch.setattr(
         "api.routes.build_summary",
         lambda *_args, **_kwargs: SummaryResult(
+            article_summary="This post is about a breaking development tied to a reported incident.",
             neutral_summary=NeutralSummary(
                 what_is_known="Known test fact.",
                 what_is_unclear="Unknown test fact.",
@@ -68,6 +69,7 @@ def test_analyze_upload_returns_composed_response(monkeypatch) -> None:
     assert payload.source_url is None
     assert payload.filename == "post.png"
     assert payload.extracted_text == "Breaking: Test OCR text"
+    assert payload.article_summary == "This post is about a breaking development tied to a reported incident."
     assert payload.framing.overall_risk == "medium"
     assert payload.coverage[0].outlet == "Reuters"
     assert payload.neutral_summary.what_is_known == "Known test fact."

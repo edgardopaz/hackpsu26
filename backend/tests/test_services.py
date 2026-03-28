@@ -29,8 +29,9 @@ def test_parse_analysis_payload_accepts_valid_json() -> None:
 
 def test_parse_summary_payload_accepts_valid_json() -> None:
     payload = _parse_summary_payload(
-        '{"what_is_known":"A","what_is_unclear":"B","user_takeaway":"C","verdict":"D"}'
+        '{"article_summary":"Topic summary","what_is_known":"A","what_is_unclear":"B","user_takeaway":"C","verdict":"D"}'
     )
 
+    assert payload["article_summary"] == "Topic summary"
     assert payload["what_is_known"] == "A"
     assert payload["verdict"] == "D"

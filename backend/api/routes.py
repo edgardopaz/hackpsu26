@@ -75,9 +75,9 @@ async def analyze_upload(
         source_url=source_url,
         filename=filename,
         extracted_text=extracted_text,
+        article_summary=summary.article_summary,
         framing=framing,
         coverage=coverage,
         neutral_summary=summary.neutral_summary,
         verdict=summary.verdict,
     )
-

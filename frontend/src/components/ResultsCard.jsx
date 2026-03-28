@@ -22,8 +22,8 @@ function ResultsCard({ result }) {
       </div>
 
       <div className="result-block">
-        <h3>OCR Text</h3>
-        <p>{result.extracted_text}</p>
+        <h3>Article Summary</h3>
+        <p>{result.article_summary}</p>
       </div>
 
       <div className="result-block">
