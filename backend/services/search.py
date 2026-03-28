@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 from typing import Any
 from urllib.parse import urlparse
@@ -9,7 +8,7 @@ from core.config import get_settings
 from schemas.analysis import CoverageItem
 
 
-DEFAULT_MAX_RESULTS = 5
+DEFAULT_MAX_RESULTS = 3
 MAX_QUERY_LENGTH = 400
 
 
@@ -39,7 +38,7 @@ def fetch_related_coverage(query: str) -> list[CoverageItem]:
         response = client.search(
             query=normalized_query,
             topic="news",
-            search_depth="basic",
+            search_depth="advanced",
             max_results=DEFAULT_MAX_RESULTS,
             include_answer=False,
             include_raw_content=False,
@@ -48,7 +47,8 @@ def fetch_related_coverage(query: str) -> list[CoverageItem]:
         raise SearchError(f"Tavily search request failed: {exc}") from exc
 
     results = response.get("results", [])
-    return [_to_coverage_item(item) for item in results if item.get("title")]
+    coverage_items = [_to_coverage_item(item) for item in results if _is_usable_result(item)]
+    return coverage_items[:DEFAULT_MAX_RESULTS]
 
 
 def _normalize_query(query: str) -> str:
@@ -68,20 +68,29 @@ def _normalize_query(query: str) -> str:
 
 def _to_coverage_item(result: dict[str, Any]) -> CoverageItem:
     url = result.get("url")
+    published_date = result.get("published_date")
     return CoverageItem(
         outlet=_extract_outlet_name(url),
         title=result.get("title", "Untitled result"),
         angle=_build_angle(result),
         url=url,
+        published_date=published_date,
     )
+
+
+def _is_usable_result(result: dict[str, Any]) -> bool:
+    return bool(result.get("title") and result.get("url"))
 
 
 def _build_angle(result: dict[str, Any]) -> str:
     content = (result.get("content") or "").strip()
+    published_date = result.get("published_date")
+
     if content:
+        if published_date:
+            return f"{content} Published: {published_date}."
         return content
 
-    published_date = result.get("published_date")
     if published_date:
         return f"Coverage result published on {published_date}."
 

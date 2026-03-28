@@ -24,6 +24,7 @@ class CoverageItem(BaseModel):
     title: str
     angle: str
     url: str | None = None
+    published_date: str | None = None
 
 
 class NeutralSummary(BaseModel):
@@ -46,4 +47,3 @@ class AnalysisResponse(BaseModel):
 class SummaryResult(BaseModel):
     neutral_summary: NeutralSummary
     verdict: str
-

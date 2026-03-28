@@ -52,7 +52,22 @@ function ResultsCard({ result }) {
           <ul className="coverage-list">
             {result.coverage.map((item) => (
               <li key={`${item.outlet}-${item.title}`}>
-                <strong>{item.outlet}:</strong> {item.title}
+                <p>
+                  <strong>{item.outlet}:</strong> {item.title}
+                </p>
+                <p className="muted">{item.angle}</p>
+                {item.published_date ? (
+                  <p className="muted">
+                    <strong>Published:</strong> {item.published_date}
+                  </p>
+                ) : null}
+                {item.url ? (
+                  <p>
+                    <a href={item.url} target="_blank" rel="noreferrer">
+                      Read article
+                    </a>
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -68,4 +83,3 @@ function ResultsCard({ result }) {
 }
 
 export default ResultsCard
-

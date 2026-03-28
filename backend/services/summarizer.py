@@ -39,8 +39,10 @@ You are summarizing a potentially misleading social or news-style post.
 
 Your job:
 - Use only the OCR text, framing analysis, and coverage snippets provided below.
+- Prefer the most recent and directly relevant coverage items when sources differ.
 - Do not claim anything that is not supported by the supplied materials.
 - If the evidence is mixed or incomplete, say so plainly.
+- Cite uncertainty when casualty counts, timing, or event scope differ across reports.
 - Keep the tone neutral and concise.
 - Return valid JSON only.
 
@@ -132,7 +134,7 @@ def _build_prompt(
         signal_lines = "- No framing signals were detected."
 
     coverage_lines = "\n".join(
-        f"- Outlet: {item.outlet}\n  Title: {item.title}\n  Angle: {item.angle}\n  URL: {item.url or 'N/A'}"
+        f"- Outlet: {item.outlet}\n  Title: {item.title}\n  Published: {item.published_date or 'Unknown'}\n  Angle: {item.angle}\n  URL: {item.url or 'N/A'}"
         for item in coverage
     )
     if not coverage_lines:
