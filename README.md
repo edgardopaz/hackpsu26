@@ -24,6 +24,18 @@ frontend/
 
 ## Backend
 
+### Windows
+
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python -m uvicorn main:app --reload
+```
+
+### Linux/Mac
+
 ```bash
 cd backend
 python -m venv venv
@@ -43,10 +55,4 @@ npm run dev
 ```
 
 Vite proxies `/api` requests to `http://localhost:8000`.
-
-## Next Steps
-
-- Replace the placeholder OCR logic in `backend/services/ocr.py` with Gemini Vision.
-- Replace the empty coverage fetch in `backend/services/search.py` with Tavily.
-- Tighten prompts and scoring in `backend/services/analyzer.py` and `backend/services/summarizer.py`.
 
