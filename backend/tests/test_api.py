@@ -1,28 +1,71 @@
-from fastapi.testclient import TestClient
+from api.routes import analyze_upload, healthcheck
+from schemas.analysis import CoverageItem, FramingAnalysis, FramingSignal, NeutralSummary, SummaryResult
 
-from main import app
 
+class FakeUploadFile:
+    def __init__(self, filename: str, content: bytes) -> None:
+        self.filename = filename
+        self._content = content
 
-client = TestClient(app)
+    async def read(self) -> bytes:
+        return self._content
 
 
 def test_healthcheck() -> None:
-    response = client.get("/api/health")
+    import asyncio
 
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    response = asyncio.run(healthcheck())
+
+    assert response == {"status": "ok"}
 
 
-def test_analyze_upload_returns_scaffolded_response() -> None:
-    response = client.post(
-        "/api/analyze",
-        files={"file": ("post.png", b"fake-image-bytes", "image/png")},
+def test_analyze_upload_returns_composed_response(monkeypatch) -> None:
+    import asyncio
+
+    monkeypatch.setattr("api.routes.extract_text", lambda *_args, **_kwargs: "Breaking: Test OCR text")
+    monkeypatch.setattr(
+        "api.routes.analyze_framing",
+        lambda _text: FramingAnalysis(
+            overall_risk="medium",
+            summary="Some urgency framing detected.",
+            signals=[
+                FramingSignal(
+                    label="Urgency cues",
+                    explanation="Uses breaking-news style wording.",
+                    score=3,
+                )
+            ],
+        ),
+    )
+    monkeypatch.setattr(
+        "api.routes.fetch_related_coverage",
+        lambda _text: [
+            CoverageItem(
+                outlet="Reuters",
+                title="Test coverage",
+                angle="A neutral test snippet.",
+                url="https://example.com/story",
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "api.routes.build_summary",
+        lambda *_args, **_kwargs: SummaryResult(
+            neutral_summary=NeutralSummary(
+                what_is_known="Known test fact.",
+                what_is_unclear="Unknown test fact.",
+                user_takeaway="Read carefully.",
+            ),
+            verdict="Mixed support.",
+        ),
     )
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["filename"] == "post.png"
-    assert "OCR placeholder output" in payload["extracted_text"]
-    assert "framing" in payload
-    assert "neutral_summary" in payload
+    upload = FakeUploadFile(filename="post.png", content=b"fake-image-bytes")
+    payload = asyncio.run(analyze_upload(upload))
 
+    assert payload.filename == "post.png"
+    assert payload.extracted_text == "Breaking: Test OCR text"
+    assert payload.framing.overall_risk == "medium"
+    assert payload.coverage[0].outlet == "Reuters"
+    assert payload.neutral_summary.what_is_known == "Known test fact."
+    assert payload.verdict == "Mixed support."

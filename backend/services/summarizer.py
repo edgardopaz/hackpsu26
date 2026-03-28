@@ -11,6 +11,29 @@ from schemas.analysis import CoverageItem, FramingAnalysis, NeutralSummary, Summ
 
 
 DEFAULT_SUMMARY_MODEL = "gemini-2.5-flash"
+SUMMARY_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "what_is_known": {
+            "type": "string",
+            "description": "A grounded summary of claims supported by the provided materials.",
+        },
+        "what_is_unclear": {
+            "type": "string",
+            "description": "What remains uncertain, disputed, or weakly supported.",
+        },
+        "user_takeaway": {
+            "type": "string",
+            "description": "A neutral takeaway for the user.",
+        },
+        "verdict": {
+            "type": "string",
+            "description": "A concise verdict grounded in the supplied evidence.",
+        },
+    },
+    "required": ["what_is_known", "what_is_unclear", "user_takeaway", "verdict"],
+    "additionalProperties": False,
+}
 SUMMARY_PROMPT_TEMPLATE = """
 You are summarizing a potentially misleading social or news-style post.
 
@@ -20,14 +43,6 @@ Your job:
 - If the evidence is mixed or incomplete, say so plainly.
 - Keep the tone neutral and concise.
 - Return valid JSON only.
-
-Return this exact JSON shape:
-{{
-  "what_is_known": "...",
-  "what_is_unclear": "...",
-  "user_takeaway": "...",
-  "verdict": "..."
-}}
 
 OCR text:
 {ocr_text}
@@ -139,7 +154,11 @@ def _generate_with_google_genai(*, prompt: str, api_key: str, model_name: str) -
     response = client.models.generate_content(
         model=model_name,
         contents=prompt,
-        config=types.GenerateContentConfig(temperature=0.2),
+        config=types.GenerateContentConfig(
+            temperature=0.2,
+            response_mime_type="application/json",
+            response_json_schema=SUMMARY_RESPONSE_SCHEMA,
+        ),
     )
     return _extract_response_text(response)
 

@@ -11,6 +11,48 @@ from schemas.analysis import FramingAnalysis, FramingSignal
 
 
 DEFAULT_ANALYZER_MODEL = "gemini-2.5-flash"
+ANALYZER_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "overall_risk": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Overall framing risk level.",
+        },
+        "summary": {
+            "type": "string",
+            "description": "A concise neutral explanation of the framing style.",
+        },
+        "signals": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "description": "Short name of the framing signal.",
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "Why this signal applies to the text.",
+                    },
+                    "score": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5,
+                        "description": "Strength of the signal from low to high.",
+                    },
+                },
+                "required": ["label", "explanation", "score"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["overall_risk", "summary", "signals"],
+    "additionalProperties": False,
+}
 ANALYZER_PROMPT_TEMPLATE = """
 You are analyzing whether text uses misleading, manipulative, sensational, or bait-like framing.
 
@@ -21,19 +63,6 @@ Focus on framing, not factual accuracy. Look for:
 - implication without evidence
 - selective or misleading presentation
 - commands telling the audience how to feel or react
-
-Return valid JSON only in this exact shape:
-{{
-  "overall_risk": "low" | "medium" | "high",
-  "summary": "...",
-  "signals": [
-    {{
-      "label": "...",
-      "explanation": "...",
-      "score": 1
-    }}
-  ]
-}}
 
 Rules:
 - Include 1 to 4 signals.
@@ -120,7 +149,11 @@ def _analyze_with_google_genai(*, prompt: str, api_key: str, model_name: str) ->
     response = client.models.generate_content(
         model=model_name,
         contents=prompt,
-        config=types.GenerateContentConfig(temperature=0.1),
+        config=types.GenerateContentConfig(
+            temperature=0.1,
+            response_mime_type="application/json",
+            response_json_schema=ANALYZER_RESPONSE_SCHEMA,
+        ),
     )
     return _extract_response_text(response)
 
