@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 RiskLevel = Literal["low", "medium", "high"]
-SourceType = Literal["screenshot", "link"]
+SourceType = Literal["screenshot", "link", "audio", "video"]
 
 
 class FramingSignal(BaseModel):

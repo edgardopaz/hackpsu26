@@ -1,10 +1,33 @@
 from services.analyzer import _parse_analysis_payload
+from services.media import classify_media, guess_mime_type, prepare_transcription_media
 from services.search import _extract_outlet_name, _normalize_query, _is_usable_result, _sanitize_content
 from services.summarizer import _parse_summary_payload
 
 
 def test_normalize_query_collapses_whitespace() -> None:
     assert _normalize_query("a  b\n\nc") == "a b c"
+
+
+def test_classify_media_detects_audio_and_video() -> None:
+    assert classify_media("clip.mp3") == "audio"
+    assert classify_media("clip.mp4") == "video"
+    assert classify_media("image.png") == "image"
+
+
+def test_guess_mime_type_prefers_filename_when_content_type_missing() -> None:
+    assert guess_mime_type("clip.mp3") == "audio/mpeg"
+
+
+def test_prepare_transcription_media_passthrough_for_audio() -> None:
+    audio_bytes, filename, mime_type, media_type = prepare_transcription_media(
+        b"audio-data",
+        "clip.mp3",
+    )
+
+    assert audio_bytes == b"audio-data"
+    assert filename == "clip.mp3"
+    assert mime_type == "audio/mpeg"
+    assert media_type == "audio"
 
 
 def test_extract_outlet_name_handles_known_acronyms() -> None:

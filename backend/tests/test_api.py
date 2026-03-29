@@ -1,5 +1,8 @@
+from fastapi import HTTPException
+
 from api.routes import analyze_upload, healthcheck
 from schemas.analysis import CoverageItem, FramingAnalysis, FramingSignal, NeutralSummary, SummaryResult
+from services.link_extractor import LinkExtractionError
 
 
 class FakeUploadFile:
@@ -74,3 +77,61 @@ def test_analyze_upload_returns_composed_response(monkeypatch) -> None:
     assert payload.coverage[0].outlet == "Reuters"
     assert payload.neutral_summary.what_is_known == "Known test fact."
     assert payload.verdict == "Mixed support."
+
+
+def test_analyze_upload_routes_audio_to_transcriber(monkeypatch) -> None:
+    import asyncio
+
+    monkeypatch.setattr("api.routes.classify_media", lambda *_args, **_kwargs: "audio")
+    monkeypatch.setattr("api.routes.transcribe_media", lambda *_args, **_kwargs: "Audio transcript text")
+    monkeypatch.setattr(
+        "api.routes.analyze_framing",
+        lambda _text: FramingAnalysis(
+            overall_risk="low",
+            summary="Mostly neutral spoken framing.",
+            signals=[
+                FramingSignal(
+                    label="Low signal language",
+                    explanation="The transcript is mostly descriptive.",
+                    score=1,
+                )
+            ],
+        ),
+    )
+    monkeypatch.setattr("api.routes.fetch_related_coverage", lambda _text: [])
+    monkeypatch.setattr(
+        "api.routes.build_summary",
+        lambda *_args, **_kwargs: SummaryResult(
+            article_summary="This clip discusses a spoken claim.",
+            neutral_summary=NeutralSummary(
+                what_is_known="Known audio fact.",
+                what_is_unclear="Unknown audio fact.",
+                user_takeaway="Listen critically.",
+            ),
+            verdict="Needs more corroboration.",
+        ),
+    )
+
+    upload = FakeUploadFile(filename="clip.mp3", content=b"fake-audio-bytes")
+    payload = asyncio.run(analyze_upload(upload, ""))
+
+    assert payload.source_type == "audio"
+    assert payload.extracted_text == "Audio transcript text"
+    assert payload.article_summary == "This clip discusses a spoken claim."
+
+
+def test_analyze_upload_returns_stage_specific_link_error(monkeypatch) -> None:
+    import asyncio
+
+    monkeypatch.setattr(
+        "api.routes.extract_text_from_link",
+        lambda _link: (_ for _ in ()).throw(LinkExtractionError("bad link")),
+    )
+
+    try:
+        asyncio.run(analyze_upload(None, "https://example.com/post"))
+    except HTTPException as exc:
+        assert exc.status_code == 400
+        assert "Link extraction failed: bad link" == exc.detail
+    else:
+        raise AssertionError("Expected HTTPException to be raised.")
