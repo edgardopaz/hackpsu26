@@ -120,6 +120,47 @@ def test_analyze_upload_routes_audio_to_transcriber(monkeypatch) -> None:
     assert payload.article_summary == "This clip discusses a spoken claim."
 
 
+def test_analyze_upload_routes_pdf_to_document_extraction(monkeypatch) -> None:
+    import asyncio
+
+    monkeypatch.setattr("api.routes.classify_media", lambda *_args, **_kwargs: "document")
+    monkeypatch.setattr("api.routes.extract_text", lambda *_args, **_kwargs: "PDF extracted text")
+    monkeypatch.setattr(
+        "api.routes.analyze_framing",
+        lambda _text: FramingAnalysis(
+            overall_risk="low",
+            summary="Document framing is mostly neutral.",
+            signals=[
+                FramingSignal(
+                    label="Low signal language",
+                    explanation="The document text is mostly descriptive.",
+                    score=1,
+                )
+            ],
+        ),
+    )
+    monkeypatch.setattr("api.routes.fetch_related_coverage", lambda _text: [])
+    monkeypatch.setattr(
+        "api.routes.build_summary",
+        lambda *_args, **_kwargs: SummaryResult(
+            article_summary="This document covers a reported claim.",
+            neutral_summary=NeutralSummary(
+                what_is_known="Known PDF fact.",
+                what_is_unclear="Unknown PDF fact.",
+                user_takeaway="Read critically.",
+            ),
+            verdict="Document analyzed.",
+        ),
+    )
+
+    upload = FakeUploadFile(filename="report.pdf", content=b"%PDF-test")
+    payload = asyncio.run(analyze_upload(upload, ""))
+
+    assert payload.source_type == "document"
+    assert payload.extracted_text == "PDF extracted text"
+    assert payload.article_summary == "This document covers a reported claim."
+
+
 def test_analyze_upload_returns_stage_specific_link_error(monkeypatch) -> None:
     import asyncio
 

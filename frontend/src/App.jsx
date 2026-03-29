@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { analyzePost } from './api/client'
-import CustomCursor from './components/CustomCursor'
 import DemoPanel from './components/DemoPanel'
 import HeroSection from './components/HeroSection'
 import NavBar from './components/NavBar'
@@ -18,6 +17,7 @@ function App() {
   const [busy, setBusy] = useState(false)
   const [stepStates, setStepStates] = useState(() => STEP_SEQUENCE.map(() => 'idle'))
   const [navScrolled, setNavScrolled] = useState(false)
+  const abortControllerRef = useRef(null)
 
   useEffect(() => {
     const onScroll = () => {
@@ -50,9 +50,9 @@ function App() {
 
   const stats = useMemo(
     () => [
-      { value: '3.2s', label: 'avg analysis time' },
-      { value: '12+', label: 'live sources checked' },
-      { value: '94%', label: 'framing accuracy' },
+      { value: '~3.2s', label: 'avg analysis time' },
+      { value: '3', label: 'ranked live sources' },
+      { value: '5-stage', label: 'verification pipeline' },
     ],
     [],
   )
@@ -77,10 +77,12 @@ function App() {
     return ''
   }
 
-  async function runProgressSimulation() {
+  async function runProgressSimulation(signal) {
     setStepStates(STEP_SEQUENCE.map(() => 'idle'))
 
     for (let index = 0; index < STEP_SEQUENCE.length; index += 1) {
+      if (signal?.aborted) return
+
       setStepStates((current) =>
         current.map((_, currentIndex) => {
           if (currentIndex < index) return 'done'
@@ -89,8 +91,21 @@ function App() {
         }),
       )
 
-      // eslint-disable-next-line no-await-in-loop
-      await new Promise((resolve) => window.setTimeout(resolve, STEP_DELAYS[index]))
+      await new Promise((resolve) => {
+        const timerId = window.setTimeout(resolve, STEP_DELAYS[index])
+        if (signal) {
+          signal.addEventListener(
+            'abort',
+            () => {
+              window.clearTimeout(timerId)
+              resolve()
+            },
+            { once: true },
+          )
+        }
+      })
+
+      if (signal?.aborted) return
 
       setStepStates((current) =>
         current.map((state, currentIndex) => (currentIndex <= index ? 'done' : state)),
@@ -105,6 +120,10 @@ function App() {
       return
     }
 
+    abortControllerRef.current?.abort()
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+
     setBusy(true)
     setError('')
     setResult(null)
@@ -112,20 +131,26 @@ function App() {
     try {
       const [response] = await Promise.all([
         analyzePost(file, claim.trim()),
-        runProgressSimulation(),
+        runProgressSimulation(abortController.signal),
       ])
-      setResult(response)
+      if (!abortController.signal.aborted) {
+        setResult(response)
+      }
     } catch (requestError) {
-      setError(requestError.message || 'An error occurred during analysis.')
-      setStepStates(STEP_SEQUENCE.map(() => 'idle'))
+      if (!abortController.signal.aborted) {
+        abortController.abort()
+        setError(requestError.message || 'An error occurred during analysis.')
+        setStepStates(STEP_SEQUENCE.map(() => 'idle'))
+      }
     } finally {
-      setBusy(false)
+      if (abortControllerRef.current === abortController) {
+        setBusy(false)
+      }
     }
   }
 
   return (
     <>
-      <CustomCursor />
       <div className="noise-overlay" aria-hidden="true" />
       <div className="floating-orb orb-gold" aria-hidden="true" />
       <div className="floating-orb orb-red" aria-hidden="true" />

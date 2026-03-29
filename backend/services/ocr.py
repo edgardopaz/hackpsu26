@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import mimetypes
 import importlib
+import io
 import os
 import warnings
 from typing import Any
@@ -14,14 +15,16 @@ class OCRError(RuntimeError):
 
 
 DEFAULT_OCR_MODEL = "gemini-2.5-flash"
+PDF_PAGE_LIMIT = 5
+PDF_CHAR_LIMIT = 12000
 OCR_PROMPT = """
-Extract all readable text from this image.
+Extract all readable text from this image or PDF.
 
 Rules:
 - Return only the extracted text.
 - Preserve paragraph and line breaks when they help keep the original meaning.
 - Do not summarize, explain, or correct the text.
-- If the image contains no readable text, return an empty string.
+- If the file contains no readable text, return an empty string.
 """.strip()
 
 
@@ -36,6 +39,9 @@ def extract_text(image_bytes: bytes, filename: str) -> str:
 
     mime_type = _guess_mime_type(filename)
     model_name = os.getenv("GEMINI_OCR_MODEL", DEFAULT_OCR_MODEL)
+
+    if mime_type == "application/pdf":
+        return _extract_pdf_text(image_bytes)
 
     try:
         return _extract_with_google_genai(
@@ -68,6 +74,56 @@ def _guess_mime_type(filename: str) -> str:
     return mime_type or "image/png"
 
 
+def _extract_pdf_text(pdf_bytes: bytes) -> str:
+    try:
+        from pypdf import PdfReader
+    except ImportError as exc:
+        raise OCRError(
+            "PDF uploads require the `pypdf` package. Install dependencies with "
+            "`python -m pip install -r requirements.txt`."
+        ) from exc
+
+    try:
+        reader = PdfReader(io.BytesIO(pdf_bytes))
+    except Exception as exc:
+        raise OCRError(f"Failed to open the PDF: {exc}") from exc
+
+    collected_pages: list[str] = []
+    total_chars = 0
+
+    for page in reader.pages[:PDF_PAGE_LIMIT]:
+        page_text = (page.extract_text() or "").strip()
+        if not page_text:
+            continue
+
+        remaining_chars = PDF_CHAR_LIMIT - total_chars
+        if remaining_chars <= 0:
+            break
+
+        if len(page_text) > remaining_chars:
+            page_text = page_text[:remaining_chars].rstrip()
+
+        collected_pages.append(page_text)
+        total_chars += len(page_text)
+
+        if total_chars >= PDF_CHAR_LIMIT:
+            break
+
+    if not collected_pages:
+        raise OCRError(
+            "This PDF does not contain extractable text. It may be a scanned or image-based PDF. "
+            "Try uploading screenshots of the key pages instead."
+        )
+
+    return _normalize_extracted_text("\n\n".join(collected_pages))
+
+
+def _normalize_extracted_text(text: str) -> str:
+    cleaned_lines = [line.strip() for line in text.splitlines()]
+    normalized = "\n".join(line for line in cleaned_lines if line)
+    return normalized.strip()
+
+
 def _extract_with_google_genai(
     *,
     image_bytes: bytes,
@@ -79,11 +135,12 @@ def _extract_with_google_genai(
     from google.genai import types
 
     client = genai.Client(api_key=api_key)
-    image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+    media_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+    contents = [OCR_PROMPT, media_part]
 
     response = client.models.generate_content(
         model=model_name,
-        contents=[OCR_PROMPT, image_part],
+        contents=contents,
         config=types.GenerateContentConfig(temperature=0),
     )
 

@@ -35,15 +35,29 @@ function DemoPanel({
               />
             </svg>
             <span>{file ? file.name : 'Drop a screenshot here or browse your files'}</span>
-            <small className="mono-label">PNG, JPG, WEBP</small>
+            <small className="mono-label">PNG, JPG, WEBP, PDF</small>
             <input
               id="verity-upload"
               type="file"
-              accept="image/*"
+              accept="image/*,.pdf,application/pdf"
               onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
               disabled={busy}
             />
           </label>
+          
+          {file ? (
+            <div style={{ textAlign: 'center', marginTop: '12px' }}>
+              <button
+                type="button"
+                className="mono-label"
+                onClick={() => onFileChange(null)}
+                disabled={busy}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', color: 'var(--muted)' }}
+              >
+                Clear selected file
+              </button>
+            </div>
+          ) : null}
 
           <div className="demo-divider">
             <span />
@@ -55,7 +69,7 @@ function DemoPanel({
             <span className="mono-label">Paste a post URL</span>
             <textarea
               rows="5"
-              placeholder="https://x.com/... or another post URL"
+              placeholder="https://foxnews.com/... or another post URL"
               value={claim}
               onChange={(event) => onClaimChange(event.target.value)}
               disabled={busy}

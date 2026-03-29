@@ -1,4 +1,5 @@
 from services.analyzer import _parse_analysis_payload
+from services.ocr import _normalize_extracted_text
 from services.media import classify_media, guess_mime_type, prepare_transcription_media
 from services.search import _extract_outlet_name, _normalize_query, _is_usable_result, _sanitize_content
 from services.summarizer import _parse_summary_payload
@@ -12,10 +13,12 @@ def test_classify_media_detects_audio_and_video() -> None:
     assert classify_media("clip.mp3") == "audio"
     assert classify_media("clip.mp4") == "video"
     assert classify_media("image.png") == "image"
+    assert classify_media("report.pdf") == "document"
 
 
 def test_guess_mime_type_prefers_filename_when_content_type_missing() -> None:
     assert guess_mime_type("clip.mp3") == "audio/mpeg"
+    assert guess_mime_type("report.pdf") == "application/pdf"
 
 
 def test_prepare_transcription_media_passthrough_for_audio() -> None:
@@ -28,6 +31,12 @@ def test_prepare_transcription_media_passthrough_for_audio() -> None:
     assert filename == "clip.mp3"
     assert mime_type == "audio/mpeg"
     assert media_type == "audio"
+
+
+def test_normalize_extracted_text_strips_empty_lines() -> None:
+    normalized = _normalize_extracted_text("A line\n\n  \nSecond line  \n")
+
+    assert normalized == "A line\nSecond line"
 
 
 def test_extract_outlet_name_handles_known_acronyms() -> None:

@@ -29,53 +29,49 @@ function ResultsCard({ result }) {
         </div>
       </div>
 
-      <section className="result-group">
-        <h4>Article Summary</h4>
-        <p>{result.article_summary}</p>
-      </section>
+      {result.article_summary ? (
+        <section className="result-group">
+          <h4>Article Summary</h4>
+          <p>{result.article_summary}</p>
+        </section>
+      ) : null}
 
       <section className="result-group">
         <h4>Framing Signals</h4>
-        <div className="signal-pills">
-          {result.framing.signals.map((signal) => {
-            const tone = signal.score >= 4 ? 'danger' : signal.score >= 3 ? 'warning' : 'neutral'
-            return (
-              <span key={`${signal.label}-${signal.score}`} className={`signal-pill signal-pill--${tone}`}>
-                {signal.label}
-              </span>
-            )
-          })}
-        </div>
+        {result.framing?.summary ? <p>{result.framing.summary}</p> : null}
         <ul className="signal-detail-list">
-          {result.framing.signals.map((signal) => (
+          {result.framing?.signals?.map((signal) => (
             <li key={`${signal.label}-${signal.explanation.slice(0, 16)}`}>
-              <strong>{signal.label}.</strong> {signal.explanation}
+              <h5 className="signal-detail-title">{signal.label}</h5>
+              <p>{signal.explanation}</p>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="result-group">
-        <h4>Neutral Summary</h4>
-        <div className="neutral-summary">
-          <p>
-            <strong>What is known:</strong> {result.neutral_summary.what_is_known}
-          </p>
-          <p>
-            <strong>What is unclear:</strong> {result.neutral_summary.what_is_unclear}
-          </p>
-          <p>
-            <strong>Takeaway:</strong> {result.neutral_summary.user_takeaway}
-          </p>
-        </div>
-      </section>
+      {result.neutral_summary ? (
+        <section className="result-group">
+          <h4>Neutral Summary</h4>
+          <div className="neutral-summary">
+            <p>
+              <strong>What is known:</strong> {result.neutral_summary.what_is_known}
+            </p>
+            <p>
+              <strong>What is unclear:</strong> {result.neutral_summary.what_is_unclear}
+            </p>
+            <p>
+              <strong>Takeaway:</strong> {result.neutral_summary.user_takeaway}
+            </p>
+          </div>
+        </section>
+      ) : null}
 
       <section className="result-group">
         <div className="coverage-header">
           <h4>Coverage</h4>
-          <span className="mono-label">Top {result.coverage.length} sources</span>
+          <span className="mono-label">Top {result.coverage?.length || 0} sources</span>
         </div>
-        {result.coverage.length === 0 ? (
+        {!result.coverage || result.coverage.length === 0 ? (
           <p className="muted-copy">No external coverage was returned for this claim.</p>
         ) : (
           <ol className="coverage-list">
@@ -86,7 +82,7 @@ function ResultsCard({ result }) {
                   <div>
                     <h5>{item.title}</h5>
                     <p className="muted-copy">
-                      {item.outlet}
+                      <span style={{ textTransform: 'capitalize' }}>{item.outlet}</span>
                       {item.published_date ? ` • ${item.published_date}` : ''}
                     </p>
                   </div>

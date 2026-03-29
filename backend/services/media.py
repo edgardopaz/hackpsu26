@@ -10,10 +10,12 @@ from pathlib import Path
 
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tiff"}
 AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".webm"}
+DOCUMENT_EXTENSIONS = {".pdf"}
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".m4v", ".webm"}
 
 IMAGE_MIME_PREFIX = "image/"
 AUDIO_MIME_PREFIX = "audio/"
+DOCUMENT_MIME_TYPE = "application/pdf"
 VIDEO_MIME_PREFIX = "video/"
 
 
@@ -30,6 +32,8 @@ def classify_media(filename: str, content_type: str | None = None) -> str:
             return "image"
         if content_type.startswith(AUDIO_MIME_PREFIX):
             return "audio"
+        if content_type == DOCUMENT_MIME_TYPE:
+            return "document"
         if content_type.startswith(VIDEO_MIME_PREFIX):
             return "video"
 
@@ -38,11 +42,13 @@ def classify_media(filename: str, content_type: str | None = None) -> str:
         return "image"
     if extension in AUDIO_EXTENSIONS:
         return "audio"
+    if extension in DOCUMENT_EXTENSIONS:
+        return "document"
     if extension in VIDEO_EXTENSIONS:
         return "video"
 
     raise MediaError(
-        "Unsupported media type. Upload an image, audio file, or video file."
+        "Unsupported media type. Upload an image, PDF, audio file, or video file."
     )
 
 
@@ -59,6 +65,8 @@ def guess_mime_type(filename: str, content_type: str | None = None) -> str:
         return "image/png"
     if media_type == "audio":
         return "audio/mpeg"
+    if media_type == "document":
+        return DOCUMENT_MIME_TYPE
     return "video/mp4"
 
 

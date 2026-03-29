@@ -60,12 +60,12 @@ async def analyze_upload(
 
         try:
             media_type = classify_media(file.filename, getattr(file, "content_type", None))
-            if media_type == "image":
+            if media_type in {"image", "document"}:
                 try:
                     extracted_text = extract_text(contents, file.filename)
                 except OCRError as exc:
-                    _raise_http_error(detail=f"OCR failed: {exc}")
-                source_type = "screenshot"
+                    _raise_http_error(detail=f"Text extraction failed: {exc}")
+                source_type = "document" if media_type == "document" else "screenshot"
             else:
                 extracted_text = transcribe_media(
                     contents,

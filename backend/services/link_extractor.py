@@ -66,14 +66,25 @@ def extract_text_from_link(link: str) -> str:
         
         return extracted_text
             
-    except requests.exceptions.Timeout:
+    except requests.exceptions.Timeout as exc:
         raise LinkExtractionError(
-            "The request to fetch content from the link timed out. "
+            "The request to fetch content from the link timed out before Tavily could reach the page. "
             "Please try again or upload a screenshot instead."
-        )
+        ) from exc
+    except requests.exceptions.HTTPError as exc:
+        status_code = exc.response.status_code if exc.response is not None else "unknown"
+        raise LinkExtractionError(
+            f"Tavily could not reach the link successfully (HTTP {status_code}). "
+            "The page may be unavailable, protected, or blocking extraction."
+        ) from exc
+    except requests.exceptions.ConnectionError as exc:
+        raise LinkExtractionError(
+            "Tavily could not reach the link because the connection failed. "
+            "The page may be unavailable or the host may be unreachable."
+        ) from exc
     except requests.exceptions.RequestException as e:
         raise LinkExtractionError(
-            "Failed to fetch content from the link. "
+            f"Failed to fetch content from the link: {e}. "
             "Please verify the URL is correct and try again, or upload a screenshot instead."
         ) from e
     except LinkExtractionError:
