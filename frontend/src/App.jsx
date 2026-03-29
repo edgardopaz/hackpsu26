@@ -1,94 +1,156 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { analyzePost } from './api/client'
-import ProgressSteps from './components/ProgressSteps'
-import ResultsCard from './components/ResultsCard'
-import UploadZone from './components/UploadZone'
-import './App.css'
+import CustomCursor from './components/CustomCursor'
+import DemoPanel from './components/DemoPanel'
+import HeroSection from './components/HeroSection'
+import NavBar from './components/NavBar'
+import PipelineSection from './components/PipelineSection'
+import SiteFooter from './components/SiteFooter'
+
+const STEP_SEQUENCE = ['Extract', 'Analyze', 'Search', 'Rank', 'Summarize']
+const STEP_DELAYS = [400, 700, 900, 600, 800]
 
 function App() {
   const [file, setFile] = useState(null)
-  const [link, setLink] = useState('')
+  const [claim, setClaim] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [activeStep, setActiveStep] = useState(0)
+  const [stepStates, setStepStates] = useState(() => STEP_SEQUENCE.map(() => 'idle'))
+  const [navScrolled, setNavScrolled] = useState(false)
 
   useEffect(() => {
-    if (!busy) {
-      return undefined
+    const onScroll = () => {
+      setNavScrolled(window.scrollY > 24)
     }
 
-    const timer = window.setInterval(() => {
-      setActiveStep((current) => (current < 3 ? current + 1 : current))
-    }, 700)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
-    return () => window.clearInterval(timer)
-  }, [busy])
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible')
+            observer.unobserve(entry.target)
+          }
+        }
+      },
+      { threshold: 0.18, rootMargin: '0px 0px -5% 0px' },
+    )
 
-  function handleModeChange(newMode) {
-    // Clear the opposite mode's state when switching
-    if (newMode === 'screenshot') {
-      setLink('')
-    } else {
-      setFile(null)
+    const elements = document.querySelectorAll('[data-reveal]')
+    elements.forEach((element) => observer.observe(element))
+
+    return () => observer.disconnect()
+  }, [])
+
+  const stats = useMemo(
+    () => [
+      { value: '3.2s', label: 'avg analysis time' },
+      { value: '12+', label: 'live sources checked' },
+      { value: '94%', label: 'framing accuracy' },
+    ],
+    [],
+  )
+
+  function validateInput() {
+    if (!file && !claim.trim()) {
+      return 'Upload a screenshot or paste a post link to run the demo.'
+    }
+
+    if (file && claim.trim()) {
+      return 'Choose one input mode: upload a screenshot or paste a link.'
+    }
+
+    if (claim.trim()) {
+      try {
+        new URL(claim.trim())
+      } catch {
+        return 'For the text field, paste a valid post URL. For plain text claims, use a screenshot for now.'
+      }
+    }
+
+    return ''
+  }
+
+  async function runProgressSimulation() {
+    setStepStates(STEP_SEQUENCE.map(() => 'idle'))
+
+    for (let index = 0; index < STEP_SEQUENCE.length; index += 1) {
+      setStepStates((current) =>
+        current.map((_, currentIndex) => {
+          if (currentIndex < index) return 'done'
+          if (currentIndex === index) return 'active'
+          return 'idle'
+        }),
+      )
+
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => window.setTimeout(resolve, STEP_DELAYS[index]))
+
+      setStepStates((current) =>
+        current.map((state, currentIndex) => (currentIndex <= index ? 'done' : state)),
+      )
     }
   }
 
   async function handleAnalyze() {
-    // Validation
-    if (!file && !link) {
-      setError('Please provide either a screenshot or a social media link.')
-      return
-    }
-
-    if (file && link) {
-      setError('Please provide either a screenshot or a link, not both.')
+    const validationError = validateInput()
+    if (validationError) {
+      setError(validationError)
       return
     }
 
     setBusy(true)
     setError('')
     setResult(null)
-    setActiveStep(0)
 
     try {
-      const response = await analyzePost(file, link)
+      const [response] = await Promise.all([
+        analyzePost(file, claim.trim()),
+        runProgressSimulation(),
+      ])
       setResult(response)
-      setActiveStep(4)
     } catch (requestError) {
       setError(requestError.message || 'An error occurred during analysis.')
+      setStepStates(STEP_SEQUENCE.map(() => 'idle'))
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <main className="app-shell">
-      <section className="hero-panel">
-        <p className="eyebrow">Fact Checker</p>
-        <h2>Verify if a social media post is truthful, based on actual data.</h2>
-        <p className="hero-copy">
-          Upload a post, detect manipulative framing, compare it against broader reporting,
-          and return a more neutral explanation of what is actually being said.
-        </p>
-      </section>
+    <>
+      <CustomCursor />
+      <div className="noise-overlay" aria-hidden="true" />
+      <div className="floating-orb orb-gold" aria-hidden="true" />
+      <div className="floating-orb orb-red" aria-hidden="true" />
 
-      {error ? <p className="error-banner">{error}</p> : null}
+      <NavBar scrolled={navScrolled} />
 
-      <section className="dashboard-grid">
-        <UploadZone
+      <main className="page-shell">
+        <HeroSection stats={stats} />
+
+        <DemoPanel
           file={file}
-          link={link}
+          claim={claim}
           busy={busy}
+          error={error}
+          result={result}
+          stepStates={stepStates}
           onFileChange={setFile}
-          onLinkChange={setLink}
-          onModeChange={handleModeChange}
+          onClaimChange={setClaim}
           onSubmit={handleAnalyze}
         />
-        <ProgressSteps activeStep={activeStep} busy={busy} completed={!!result} />
-        <ResultsCard result={result} />
-      </section>
-    </main>
+
+        <PipelineSection />
+        <SiteFooter />
+      </main>
+    </>
   )
 }
 
