@@ -80,7 +80,7 @@ python scripts/ocr_smoke_test.py
 python scripts/analyzer_smoke_test.py
 python scripts/search_smoke_test.py
 python scripts/summary_smoke_test.py
-python scripts/media_smoke_test.py /absolute/path/to/clip.mp3
+python scripts/media_smoke_test.py /absolute/path/to/clip.mp3 or clip.mp4
 ```
 
 ## Frontend
