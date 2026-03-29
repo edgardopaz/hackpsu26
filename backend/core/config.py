@@ -16,6 +16,7 @@ class Settings:
     gemini_api_key: str
     tavily_api_key: str
     frontend_origin: str
+    frontend_origins: str
 
     @property
     def allowed_origins(self) -> list[str]:
@@ -24,6 +25,12 @@ class Settings:
             "http://localhost:5173",
             "http://127.0.0.1:5173",
         }
+        extra_origins = {
+            origin.strip()
+            for origin in self.frontend_origins.split(",")
+            if origin.strip()
+        }
+        origins.update(extra_origins)
         return sorted(o.rstrip("/") for o in origins if o)
 
 
@@ -33,4 +40,5 @@ def get_settings() -> Settings:
         gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
         tavily_api_key=os.getenv("TAVILY_API_KEY", ""),
         frontend_origin=os.getenv("FRONTEND_ORIGIN", "http://localhost:5173"),
+        frontend_origins=os.getenv("FRONTEND_ORIGINS", ""),
     )
