@@ -43,10 +43,10 @@ function UploadZone({ file, link, busy, onFileChange, onLinkChange, onModeChange
     <section className="panel upload-zone">
       <div>
         <p className="eyebrow">Step 1</p>
-        <h2>Upload a post or screenshot</h2>
+        <h2>Upload a post link or screenshot</h2>
         <p className="muted">
           Choose a social media post by uploading a screenshot or providing a direct link.
-          The backend will extract text using OCR or by fetching post metadata.
+          The backend will extract text using OCR or by fetching post metadata, and a summary will be returned.
         </p>
       </div>
 
@@ -88,7 +88,7 @@ function UploadZone({ file, link, busy, onFileChange, onLinkChange, onModeChange
           <input
             id="post-link-input"
             type="url"
-            placeholder="https://twitter.com/... or https://facebook.com/..."
+            placeholder="https://reddit.com/..."
             value={link}
             onChange={(event) => handleLinkChange(event.target.value)}
             onBlur={handleLinkBlur}

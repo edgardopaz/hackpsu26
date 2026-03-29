@@ -14,11 +14,16 @@
     linear-gradient(135deg, rgba(255, 247, 237, 0.96), rgba(244, 241, 222, 0.88));
   border: 1px solid var(--border);
   text-align: left;
+  
 }
 
 .hero-copy {
-  max-width: 740px;
   font-size: 1.05rem;
+}
+
+.hero-copy__body {
+  font-size: 1.05rem;
+  text-align: center;
 }
 
 .dashboard-grid {
@@ -39,7 +44,7 @@
 
 .upload-zone,
 .progress-panel {
-  min-height: 280px;
+  height: 400px;
 }
 
 .results-panel {
