@@ -9,7 +9,7 @@ function SiteFooter() {
         <p>FastAPI + Gemini + Tavily + React/Vite</p>
       </div>
       <div className="site-footer__right">
-        <p className="mono-label">Hackathon demo</p>
+        <p className="mono-label">Verity Platform</p>
         <p>Built for rapid verification under pressure.</p>
       </div>
     </footer>

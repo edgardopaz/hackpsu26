@@ -59,7 +59,7 @@ function App() {
 
   function validateInput() {
     if (!file && !claim.trim()) {
-      return 'Upload a file or paste a post link to run the demo.'
+      return 'Upload a file or paste a post link to run the analysis.'
     }
 
     if (file && claim.trim()) {

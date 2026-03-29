@@ -1,7 +1,6 @@
 function HeroSection({ stats }) {
   return (
     <section id="top" className="hero-section" data-reveal>
-      <div className="hero-grid-lines" aria-hidden="true" />
       <div className="hero-copy">
         <div className="eyebrow-row">
           <span className="eyebrow-row__line" aria-hidden="true" />
@@ -16,15 +15,15 @@ function HeroSection({ stats }) {
         </p>
         <div className="hero-actions">
           <a href="#demo" className="hero-button hero-button--primary">
-            Try the demo →
+            Analyze a claim →
           </a>
-          <a href="#pipeline" className="hero-button hero-button--ghost">
+          <a href="#how-it-works" className="hero-button hero-button--ghost">
             See the pipeline
           </a>
         </div>
       </div>
 
-      <div className="hero-stats" data-reveal>
+      <div className="hero-stats">
         {stats.map((stat, index) => (
           <div key={stat.label} className="hero-stat" style={{ '--stagger': `${index * 0.1}s` }}>
             <span className="hero-stat__value">{stat.value}</span>

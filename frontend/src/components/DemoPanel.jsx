@@ -16,7 +16,7 @@ function DemoPanel({
   return (
     <section id="demo" className="demo-section" data-reveal>
       <div className="section-heading">
-        <p className="mono-label">Interactive Demo</p>
+        <p className="mono-label">Verification Dashboard</p>
         <h2>Run the pipeline on a file or post link.</h2>
       </div>
 
@@ -86,7 +86,7 @@ function DemoPanel({
         <section className="demo-panel demo-panel--output">
           <div className="demo-panel__header">
             <p className="mono-label">Output</p>
-            <h3>Editorial result card</h3>
+            <h3>Analysis Results</h3>
           </div>
 
           {!busy && !result ? (
