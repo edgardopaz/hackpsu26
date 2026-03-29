@@ -59,18 +59,18 @@ function App() {
 
   function validateInput() {
     if (!file && !claim.trim()) {
-      return 'Upload a screenshot or paste a post link to run the demo.'
+      return 'Upload a file or paste a post link to run the demo.'
     }
 
     if (file && claim.trim()) {
-      return 'Choose one input mode: upload a screenshot or paste a link.'
+      return 'Choose one input mode: upload a file or paste a link.'
     }
 
     if (claim.trim()) {
       try {
         new URL(claim.trim())
       } catch {
-        return 'For the text field, paste a valid post URL. For plain text claims, use a screenshot for now.'
+        return 'For the text field, paste a valid post URL. For plain text claims, use a file upload for now.'
       }
     }
 

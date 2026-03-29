@@ -11,7 +11,7 @@ function HeroSection({ stats }) {
           The truth, <em>sourced</em> in seconds.
         </h1>
         <p className="hero-copy__body">
-          Verity checks screenshot-based claims against broader reporting, surfaces manipulative framing,
+          Verity checks media-based claims against broader reporting, surfaces manipulative framing,
           and gives you a neutral summary you can trust faster than the feed moves.
         </p>
         <div className="hero-actions">

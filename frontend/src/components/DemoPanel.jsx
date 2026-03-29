@@ -17,14 +17,14 @@ function DemoPanel({
     <section id="demo" className="demo-section" data-reveal>
       <div className="section-heading">
         <p className="mono-label">Interactive Demo</p>
-        <h2>Run the pipeline on a screenshot or post link.</h2>
+        <h2>Run the pipeline on a file or post link.</h2>
       </div>
 
       <div className="demo-grid">
         <section className="demo-panel demo-panel--input">
           <div className="demo-panel__header">
             <p className="mono-label">Input</p>
-            <h3>Upload a screenshot or paste a post link</h3>
+            <h3>Upload a file or paste a post link</h3>
           </div>
 
           <label className="upload-surface" htmlFor="verity-upload">
@@ -34,12 +34,12 @@ function DemoPanel({
                 fill="currentColor"
               />
             </svg>
-            <span>{file ? file.name : 'Drop a screenshot here or browse your files'}</span>
-            <small className="mono-label">PNG, JPG, WEBP, PDF</small>
+            <span>{file ? file.name : 'Drop a media file or document here, or browse'}</span>
+            <small className="mono-label">Images, PDFs, Audio, Video</small>
             <input
               id="verity-upload"
               type="file"
-              accept="image/*,.pdf,application/pdf"
+              accept="image/*,application/pdf,audio/*,video/*"
               onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
               disabled={busy}
             />

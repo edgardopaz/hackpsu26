@@ -3,7 +3,7 @@ const PIPELINE_STEPS = [
     number: '01',
     symbol: '⬡',
     title: 'Extract',
-    description: 'Turn the screenshot or link into usable text.',
+    description: 'Turn the uploaded file or link into usable text.',
     tech: 'Gemini Vision',
   },
   {
