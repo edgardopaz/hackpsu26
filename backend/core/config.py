@@ -6,7 +6,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+_env_path = Path(__file__).resolve().parents[2] / ".env"
+if _env_path.is_file():
+    load_dotenv(_env_path)
 
 
 @dataclass(frozen=True)
@@ -17,12 +19,12 @@ class Settings:
 
     @property
     def allowed_origins(self) -> list[str]:
-        localhost_variants = {
+        origins = {
             self.frontend_origin,
             "http://localhost:5173",
             "http://127.0.0.1:5173",
         }
-        return sorted(localhost_variants)
+        return sorted(o.rstrip("/") for o in origins if o)
 
 
 @lru_cache
