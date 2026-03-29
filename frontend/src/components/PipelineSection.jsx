@@ -10,8 +10,8 @@ const PIPELINE_STEPS = [
     number: '02',
     symbol: '◎',
     title: 'Analyze',
-    description: 'Detect manipulative framing or bait-like language.',
-    tech: 'Gemini 2.5',
+    description: 'Detect sensational language, missing context, and manipulative framing signals.',
+    tech: 'Gemini 2.5 Pro',
   },
   {
     number: '03',
@@ -31,8 +31,8 @@ const PIPELINE_STEPS = [
     number: '05',
     symbol: '◇',
     title: 'Summarize',
-    description: 'Produce a neutral explanation of what is known and unclear.',
-    tech: 'Gemini 2.5',
+    description: 'Generate a grounded explanation of what is known, what is unclear, and what to take away.',
+    tech: 'Gemini 1.5 Pro',
   },
 ]
 
