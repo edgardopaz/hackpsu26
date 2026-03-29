@@ -50,7 +50,7 @@ function App() {
 
   const stats = useMemo(
     () => [
-      { value: '~3.2s', label: 'avg analysis time' },
+      { value: '~5.1s', label: 'avg analysis time' },
       { value: '3', label: 'ranked live sources' },
       { value: '5-stage', label: 'verification pipeline' },
     ],
