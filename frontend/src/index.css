@@ -265,12 +265,11 @@ h5 {
 
 .hero-section h1 {
   max-width: 820px;
-  font-size: clamp(3.8rem, 8vw, 6.5rem);
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
   letter-spacing: -0.05em;
 }
 
 .hero-section h1 em {
-  color: var(--accent);
   font-style: italic;
 }
 

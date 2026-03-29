@@ -18,8 +18,12 @@
 }
 
 .hero-copy {
-  max-width: 740px;
   font-size: 1.05rem;
+}
+
+.hero-copy__body {
+  font-size: 1.05rem;
+  text-align: center;
 }
 
 .dashboard-grid {
