@@ -6,10 +6,7 @@ function NavBar({ scrolled }) {
           <span className="brand-mark__word">Verity</span>
         </a>
 
-        <nav className="site-nav__links" aria-label="Primary">
-          <a href="#demo">Analyze</a>
-          <a href="#pipeline">Pipeline</a>
-        </nav>
+        
 
         <a
           href="https://github.com/edgardopaz/hackpsu26"
